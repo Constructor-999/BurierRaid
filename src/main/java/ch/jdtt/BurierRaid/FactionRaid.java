@@ -20,6 +20,9 @@ public class FactionRaid {
         this.location = new TotemLocation(x, y, z);
         this.isInWar = isInRaid;
     }
+    public String getFacID() {
+        return facID;
+    }
 }
 
 class TotemLocation {

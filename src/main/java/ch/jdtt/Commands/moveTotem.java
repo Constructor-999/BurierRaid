@@ -2,8 +2,12 @@ package ch.jdtt.Commands;
 
 import ch.jdtt.BurierRaid.BurierRaid;
 import ch.jdtt.BurierRaid.FactionRaid;
-import com.google.gson.*;
-import com.saicone.rtag.RtagEntity;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.massivecraft.factions.FPlayer;
+import com.massivecraft.factions.FPlayers;
+import com.massivecraft.factions.Faction;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,21 +15,21 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import com.massivecraft.factions.*;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class placeTotem implements CommandExecutor {
+public class moveTotem implements CommandExecutor {
     BurierRaid plugin;
     File FactionRaidListF = new File("./plugins/BurierRaid/FactionRaid.json");
     Collection<FactionRaid> FactionRaids = new ArrayList<>();
-    public placeTotem(BurierRaid plugin) {
+    public moveTotem(BurierRaid plugin) {
         this.plugin = plugin;
     }
 
@@ -46,6 +50,9 @@ public class placeTotem implements CommandExecutor {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            sender.sendMessage(ChatColor.RED+"You don't have a totem, like every other faction :>");
+            return false;
         }
         FPlayer fplayer = FPlayers.getInstance().getByPlayer(Bukkit.getPlayer(sender.getName()));
         Player player = Bukkit.getPlayer(sender.getName());
@@ -68,37 +75,56 @@ public class placeTotem implements CommandExecutor {
         }
         if (!FactionRaids.isEmpty()) {
             JsonArray FactionsInfoArray = gson.fromJson(gson.toJson(FactionRaids), JsonArray.class);
-            boolean haveTotem = true;
+            boolean noTotem = true;
+            boolean inWar = true;
             for (int i = 0; i < FactionsInfoArray.size(); i++) {
-                if(FactionsInfoArray.get(i).getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
-                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You ALREADY have a totem!");
-                    haveTotem = true;
+                if(!FactionsInfoArray.get(i).getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
+                    sender.sendMessage(ChatColor.RED + "You DON'T have a totem!");
+                    sender.sendMessage( ChatColor.BLUE + "You can place one with: "+ChatColor.BOLD+"/placeTotem");
+                    noTotem = true;
                     break;
                 } else {
-                    haveTotem = false;
+                    noTotem = false;
+                }
+                if(FactionsInfoArray.get(i).getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
+                    inWar = FactionsInfoArray.get(i).getAsJsonObject().get("isInWar").getAsBoolean();
+                    if (inWar){
+                        sender.sendMessage( ChatColor.RED + "You are in a "+ChatColor.BOLD+"WAR!");
+                        break;
+                    }
                 }
             }
-            if (haveTotem){
+            if (noTotem || inWar){
                 return false;
             }
         }
+
         World w = Bukkit.getPlayer(sender.getName()).getWorld();
         Location playerLoc = player.getLocation();
-        Entity ArmorStandTotem = w.spawnEntity(new Location(w, playerLoc.getBlockX()+0.5,
-                playerLoc.getBlockY(), playerLoc.getBlockZ()+0.5), EntityType.ARMOR_STAND);
-        RtagEntity.edit(ArmorStandTotem, tag -> {
-            tag.set(ChatColor.DARK_RED+faction.getTag()+"'s raid TOTEM", "CustomName");
-            tag.set(true, "CustomNameVisible");
-            tag.set(true, "PersistenceRequired");
-            tag.set(true, "NoGravity");
-            tag.set(true, "Invulnerable");
+        gson.fromJson(gson.toJson(FactionRaids), JsonArray.class).forEach(fac ->{
+            if (fac.getAsJsonObject().get("facID").getAsString().equals(faction.getId()))  {
+                String totemUUID = fac.getAsJsonObject().get("totemUUID").getAsString();
+
+                for (Entity ArmorStandTotem : w.getEntities()) {
+                    if (ArmorStandTotem.getUniqueId().toString().equals(totemUUID)) {
+
+                        ArmorStandTotem.teleport(new Location(w, playerLoc.getBlockX()+0.5,
+                                playerLoc.getBlockY(), playerLoc.getBlockZ()+0.5));
+                        Location totemLocation = ArmorStandTotem.getLocation();
+
+                        FactionRaids.forEach(factionRaid -> {
+                            if (factionRaid.getFacID().equals(faction.getId())) {
+
+                                FactionRaids.remove(factionRaid);
+                                FactionRaids.add(new FactionRaid(faction.getTag(),
+                                        faction.getId(), ArmorStandTotem.getUniqueId().toString(), false,
+                                        totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
+                            }
+                        });
+                    }
+                }
+            }
         });
-        Location totemLocation = ArmorStandTotem.getLocation();
-        FactionRaids.add(new FactionRaid(faction.getTag(),
-                faction.getId(),
-                ArmorStandTotem.getUniqueId().toString(),
-                false,
-                totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
         try {
             FileWriter JSONwriter = new FileWriter(FactionRaidListF);
             JSONwriter.write(gson.toJson(FactionRaids));

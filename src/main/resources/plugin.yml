@@ -8,4 +8,4 @@ commands:
     permission: burierraid.placeTotem
   moveTotem:
     description: Moves the flag that others factions will capture, &lcYOU CAN'T MOVE IT DURING A RAID
-    permission: burierraid.placeTotem
+    permission: burierraid.moveTotem
