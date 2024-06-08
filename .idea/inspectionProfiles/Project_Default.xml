@@ -1,0 +1,38 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="VulnerableLibrariesLocal" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="isIgnoringEnabled" value="true" />
+      <option name="ignoredModules">
+        <list>
+          <option value="BurierRaid" />
+          <option value="BurierRaid" />
+          <option value="BurierRaid" />
+          <option value="BurierRaid" />
+          <option value="BurierRaid" />
+          <option value="BurierRaid" />
+        </list>
+      </option>
+      <option name="ignoredPackages">
+        <list>
+          <option value="com.google.guava:guava:31.0.1-jre" />
+          <option value="org.yaml:snakeyaml:1.33" />
+          <option value="com.google.code.gson:gson:2.2.4" />
+          <option value="com.google.guava:guava:17.0" />
+          <option value="junit:junit:4.10" />
+          <option value="org.yaml:snakeyaml:1.15" />
+        </list>
+      </option>
+      <option name="ignoredReasons">
+        <list>
+          <option value="Not exploitable" />
+          <option value="In progress" />
+          <option value="Not exploitable" />
+          <option value="Fixed in branch" />
+          <option value="In progress" />
+          <option value="Not exploitable" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

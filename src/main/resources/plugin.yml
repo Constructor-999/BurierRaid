@@ -1,0 +1,11 @@
+main: ch.jdtt.BurierRaid.BurierRaid
+version: 1.0.0
+name: BurierRaid
+api-version: 1.8.8
+commands:
+  placeTotem:
+    description: Place the flag that others factions will capture
+    permission: burierraid.placeTotem
+  moveTotem:
+    description: Moves the flag that others factions will capture, &lcYOU CAN'T MOVE IT DURING A RAID
+    permission: burierraid.placeTotem
