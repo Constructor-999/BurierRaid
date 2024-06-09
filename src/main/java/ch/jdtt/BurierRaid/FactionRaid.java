@@ -6,22 +6,25 @@ import org.json.simple.JSONObject;
 
 public class FactionRaid {
     private String faction;
-    private String facID;
     private String totemUUID;
     private TotemLocation location;
     private Boolean isInWar;
 
-    public FactionRaid(String faction, String facID,
+    public FactionRaid(String faction,
                        String totemUUID, Boolean isInRaid,
                        Double x, Double y, Double z) {
         this.faction = faction;
-        this.facID = facID;
         this.totemUUID = totemUUID;
         this.location = new TotemLocation(x, y, z);
         this.isInWar = isInRaid;
     }
-    public String getFacID() {
-        return facID;
+
+    public Boolean getInWar() {
+        return isInWar;
+    }
+
+    public String getTotemUUID() {
+        return totemUUID;
     }
 }
 

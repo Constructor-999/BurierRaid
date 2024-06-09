@@ -2,10 +2,9 @@ package ch.jdtt.Commands;
 
 import ch.jdtt.BurierRaid.BurierRaid;
 import ch.jdtt.BurierRaid.FactionRaid;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
@@ -21,14 +20,16 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class moveTotem implements CommandExecutor {
     BurierRaid plugin;
     File FactionRaidListF = new File("./plugins/BurierRaid/FactionRaid.json");
-    Collection<FactionRaid> FactionRaids = new ArrayList<>();
+    Map<String, FactionRaid> FactionRaids = new LinkedHashMap<>();
+    Type FactionRaidMapType = new TypeToken<Map<String, FactionRaid>>(){}.getType();
     public moveTotem(BurierRaid plugin) {
         this.plugin = plugin;
     }
@@ -45,8 +46,7 @@ public class moveTotem implements CommandExecutor {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         if (FactionRaidListF.length() != 0) {
             try {
-                JsonArray FactionRaidsRAW = gson.fromJson(Files.readString(FactionRaidListF.toPath()), JsonArray.class);
-                FactionRaidsRAW.forEach(factionsJSON -> FactionRaids.add(gson.fromJson(factionsJSON.getAsJsonObject(), FactionRaid.class)));
+                FactionRaids = gson.fromJson(Files.readString(FactionRaidListF.toPath()), FactionRaidMapType);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -74,58 +74,29 @@ public class moveTotem implements CommandExecutor {
             return false;
         }
         if (!FactionRaids.isEmpty()) {
-            JsonArray FactionsInfoArray = gson.fromJson(gson.toJson(FactionRaids), JsonArray.class);
-            boolean noTotem = true;
-            boolean inWar = true;
-            for (int i = 0; i < FactionsInfoArray.size(); i++) {
-                if(!FactionsInfoArray.get(i).getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
-                    sender.sendMessage(ChatColor.RED + "You DON'T have a totem!");
-                    sender.sendMessage( ChatColor.BLUE + "You can place one with: "+ChatColor.BOLD+"/placeTotem");
-                    noTotem = true;
-                    break;
-                } else {
-                    noTotem = false;
-                }
-                if(FactionsInfoArray.get(i).getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
-                    inWar = FactionsInfoArray.get(i).getAsJsonObject().get("isInWar").getAsBoolean();
-                    if (inWar){
-                        sender.sendMessage( ChatColor.RED + "You are in a "+ChatColor.BOLD+"WAR!");
-                        break;
-                    }
-                }
+            if(!FactionRaids.containsKey(faction.getId())) {
+                sender.sendMessage(ChatColor.RED + "You DON'T have a totem!");
+                sender.sendMessage( ChatColor.BLUE + "You can place one with: "+ChatColor.BOLD+"/placeTotem");
+                return false;
             }
-            if (noTotem || inWar){
+            if (FactionRaids.get(faction.getId()).getInWar()) {
+                sender.sendMessage( ChatColor.RED + "You are in a "+ChatColor.BOLD+"WAR!");
                 return false;
             }
         }
-
         World w = Bukkit.getPlayer(sender.getName()).getWorld();
         Location playerLoc = player.getLocation();
-        sender.sendMessage(ChatColor.RED + "t1");
-        sender.sendMessage(String.valueOf(FactionRaids.size()));
-        for (JsonElement fac : gson.fromJson(gson.toJson(FactionRaids), JsonArray.class)) {
-            if (fac.getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
-                String totemUUID = fac.getAsJsonObject().get("totemUUID").getAsString();
-                sender.sendMessage(ChatColor.RED + "t2");
-                for (Entity ArmorStandTotem : w.getEntities()) {
-                    if (ArmorStandTotem.getUniqueId().toString().equals(totemUUID)) {
-                        sender.sendMessage(ChatColor.RED + "t3");
-                        ArmorStandTotem.teleport(new Location(w, playerLoc.getBlockX() + 0.5,
-                                playerLoc.getBlockY(), playerLoc.getBlockZ() + 0.5));
-                        Location totemLocation = ArmorStandTotem.getLocation();
-                        sender.sendMessage(ChatColor.RED + "t4");
-                        FactionRaids.removeIf(factionRaid -> (factionRaid.getFacID().equals(faction.getId())));
-                        sender.sendMessage(ChatColor.RED + "t5");
-                        FactionRaids.add(new FactionRaid(faction.getTag(),
-                                faction.getId(), ArmorStandTotem.getUniqueId().toString(), false,
-                                totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
-
-                    }
-                }
-                break;
+        for (Entity ArmorStandTotem : w.getEntities()) {
+            if (ArmorStandTotem.getUniqueId().toString().equals(FactionRaids.get(faction.getId()).getTotemUUID())) {
+                ArmorStandTotem.teleport(new Location(w, playerLoc.getBlockX() + 0.5,
+                        playerLoc.getBlockY(), playerLoc.getBlockZ() + 0.5));
+                Location totemLocation = ArmorStandTotem.getLocation();
+                FactionRaids.replace(faction.getId(), new FactionRaid(faction.getTag(),
+                        ArmorStandTotem.getUniqueId().toString(),
+                        false,
+                        totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
             }
         }
-        sender.sendMessage(ChatColor.RED + "t6");
         try {
             FileWriter JSONwriter = new FileWriter(FactionRaidListF);
             JSONwriter.write(gson.toJson(FactionRaids));

@@ -3,6 +3,7 @@ package ch.jdtt.Commands;
 import ch.jdtt.BurierRaid.BurierRaid;
 import ch.jdtt.BurierRaid.FactionRaid;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.saicone.rtag.RtagEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,16 +16,17 @@ import com.massivecraft.factions.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-
 import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class placeTotem implements CommandExecutor {
     BurierRaid plugin;
     File FactionRaidListF = new File("./plugins/BurierRaid/FactionRaid.json");
-    Collection<FactionRaid> FactionRaids = new ArrayList<>();
+    Map<String, FactionRaid> FactionRaids = new LinkedHashMap<>();
+    Type FactionRaidMapType = new TypeToken<Map<String, FactionRaid>>(){}.getType();
     public placeTotem(BurierRaid plugin) {
         this.plugin = plugin;
     }
@@ -41,8 +43,7 @@ public class placeTotem implements CommandExecutor {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         if (FactionRaidListF.length() != 0) {
             try {
-                JsonArray FactionRaidsRAW = gson.fromJson(Files.readString(FactionRaidListF.toPath()), JsonArray.class);
-                FactionRaidsRAW.forEach(factionsJSON -> FactionRaids.add(gson.fromJson(factionsJSON.getAsJsonObject(), FactionRaid.class)));
+                FactionRaids = gson.fromJson(Files.readString(FactionRaidListF.toPath()), FactionRaidMapType);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -67,18 +68,8 @@ public class placeTotem implements CommandExecutor {
             return false;
         }
         if (!FactionRaids.isEmpty()) {
-            JsonArray FactionsInfoArray = gson.fromJson(gson.toJson(FactionRaids), JsonArray.class);
-            boolean haveTotem = true;
-            for (int i = 0; i < FactionsInfoArray.size(); i++) {
-                if(FactionsInfoArray.get(i).getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
-                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You ALREADY have a totem!");
-                    haveTotem = true;
-                    break;
-                } else {
-                    haveTotem = false;
-                }
-            }
-            if (haveTotem){
+            if(FactionRaids.containsKey(faction.getId())) {
+                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You ALREADY have a totem!");
                 return false;
             }
         }
@@ -94,8 +85,7 @@ public class placeTotem implements CommandExecutor {
             tag.set(true, "Invulnerable");
         });
         Location totemLocation = ArmorStandTotem.getLocation();
-        FactionRaids.add(new FactionRaid(faction.getTag(),
-                faction.getId(),
+        FactionRaids.put(faction.getId(),new FactionRaid(faction.getTag(),
                 ArmorStandTotem.getUniqueId().toString(),
                 false,
                 totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
