@@ -5,7 +5,7 @@ import ch.jdtt.BurierRaid.FactionRaid;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
@@ -18,14 +18,12 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 
 public class moveTotem implements CommandExecutor {
     BurierRaid plugin;
@@ -104,20 +102,19 @@ public class moveTotem implements CommandExecutor {
         World w = Bukkit.getPlayer(sender.getName()).getWorld();
         Location playerLoc = player.getLocation();
         sender.sendMessage(ChatColor.RED + "t1");
-        FactionRaid originalTotemFac = FactionRaids.stream().filter(facRaid -> facRaid.getFacID().equals(faction.getId())).findFirst().orElse(new FactionRaid(null, null, null, null, null, null, null));
-        sender.sendMessage(gson.toJson(originalTotemFac));
-        gson.fromJson(gson.toJson(FactionRaids), JsonArray.class).forEach(fac ->{
-            if (fac.getAsJsonObject().get("facID").getAsString().equals(faction.getId()))  {
+        sender.sendMessage(String.valueOf(FactionRaids.size()));
+        for (JsonElement fac : gson.fromJson(gson.toJson(FactionRaids), JsonArray.class)) {
+            if (fac.getAsJsonObject().get("facID").getAsString().equals(faction.getId())) {
                 String totemUUID = fac.getAsJsonObject().get("totemUUID").getAsString();
                 sender.sendMessage(ChatColor.RED + "t2");
                 for (Entity ArmorStandTotem : w.getEntities()) {
                     if (ArmorStandTotem.getUniqueId().toString().equals(totemUUID)) {
                         sender.sendMessage(ChatColor.RED + "t3");
-                        ArmorStandTotem.teleport(new Location(w, playerLoc.getBlockX()+0.5,
-                                playerLoc.getBlockY(), playerLoc.getBlockZ()+0.5));
+                        ArmorStandTotem.teleport(new Location(w, playerLoc.getBlockX() + 0.5,
+                                playerLoc.getBlockY(), playerLoc.getBlockZ() + 0.5));
                         Location totemLocation = ArmorStandTotem.getLocation();
                         sender.sendMessage(ChatColor.RED + "t4");
-                        FactionRaids.remove(originalTotemFac);
+                        FactionRaids.removeIf(factionRaid -> (factionRaid.getFacID().equals(faction.getId())));
                         sender.sendMessage(ChatColor.RED + "t5");
                         FactionRaids.add(new FactionRaid(faction.getTag(),
                                 faction.getId(), ArmorStandTotem.getUniqueId().toString(), false,
@@ -125,8 +122,9 @@ public class moveTotem implements CommandExecutor {
 
                     }
                 }
+                break;
             }
-        });
+        }
         sender.sendMessage(ChatColor.RED + "t6");
         try {
             FileWriter JSONwriter = new FileWriter(FactionRaidListF);
