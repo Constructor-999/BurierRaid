@@ -5,10 +5,7 @@ import ch.jdtt.BurierRaid.FactionRaid;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.saicone.rtag.RtagEntity;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -19,7 +16,9 @@ import org.bukkit.entity.Player;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class placeTotem implements CommandExecutor {
@@ -67,14 +66,28 @@ public class placeTotem implements CommandExecutor {
             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You NEED to be in the OverWorld!");
             return false;
         }
+        World w = Bukkit.getPlayer(sender.getName()).getWorld();
+        Location playerLoc = player.getLocation();
+        Chunk totemChunk = w.getChunkAt(playerLoc);
+        List<Chunk> totemClaimedChunks = new ArrayList<>();
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <=1 ; j++) {
+                Chunk checkChunk = w.getChunkAt((totemChunk.getX()+i), totemChunk.getZ()+j);
+                if (faction.getAllClaims().stream().anyMatch(fLocation -> (fLocation.getChunk().equals(checkChunk)))){
+                    totemClaimedChunks.add(checkChunk);
+                }
+            }
+        }
+        //Math.round(Math.sqrt(i*i+j*j)) == Rayon
+        sender.sendMessage(String.valueOf(totemClaimedChunks.size()));
+        sender.sendMessage(String.valueOf(faction.getAllClaims().stream().anyMatch(fLocation -> (fLocation.getChunk().equals(totemChunk)))));
+
         if (!FactionRaids.isEmpty()) {
             if(FactionRaids.containsKey(faction.getId())) {
                 sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You ALREADY have a totem!");
                 return false;
             }
         }
-        World w = Bukkit.getPlayer(sender.getName()).getWorld();
-        Location playerLoc = player.getLocation();
         Entity ArmorStandTotem = w.spawnEntity(new Location(w, playerLoc.getBlockX()+0.5,
                 playerLoc.getBlockY(), playerLoc.getBlockZ()+0.5), EntityType.ARMOR_STAND);
         RtagEntity.edit(ArmorStandTotem, tag -> {
