@@ -5,6 +5,7 @@ import ch.jdtt.BurierRaid.FactionRaid;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.saicone.rtag.RtagEntity;
+import org.apache.commons.collections4.CollectionUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -70,6 +71,11 @@ public class placeTotem implements CommandExecutor {
         Location playerLoc = player.getLocation();
         Chunk totemChunk = w.getChunkAt(playerLoc);
         List<Chunk> totemClaimedChunks = new ArrayList<>();
+        List<Chunk> totemWildernessChunks = new ArrayList<>();
+        List<Chunk> factonChunkList = new ArrayList<>();
+        faction.getAllClaims().forEach(fLocation -> {
+            factonChunkList.add(fLocation.getChunk());
+        });
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <=1 ; j++) {
                 Chunk checkChunk = w.getChunkAt((totemChunk.getX()+i), totemChunk.getZ()+j);
@@ -78,8 +84,22 @@ public class placeTotem implements CommandExecutor {
                 }
             }
         }
-        //Math.round(Math.sqrt(i*i+j*j)) == Rayon
+        totemClaimedChunks.forEach(totemClaimedcChunk -> {
+            for (int i = -2; i <= 2; i++) {
+                for (int j = -2; j <=2 ; j++) {
+                    if (Math.round(Math.sqrt(i*i+j*j)) <= 2) {
+                        Chunk wildernessChunk = w.getChunkAt((totemClaimedcChunk.getX()+i), totemClaimedcChunk.getZ()+j);
+                        if (totemWildernessChunks.stream().noneMatch(chunk -> (chunk.equals(wildernessChunk))) &&
+                                totemClaimedChunks.stream().noneMatch(chunk -> (chunk.equals(wildernessChunk)))){
+                            totemWildernessChunks.add(wildernessChunk);
+                        }
+                    }
+                }
+            }
+        });
         sender.sendMessage(String.valueOf(totemClaimedChunks.size()));
+        sender.sendMessage(String.valueOf(totemWildernessChunks.size()));
+        sender.sendMessage(String.valueOf(CollectionUtils.containsAny(totemWildernessChunks, factonChunkList)));
         sender.sendMessage(String.valueOf(faction.getAllClaims().stream().anyMatch(fLocation -> (fLocation.getChunk().equals(totemChunk)))));
 
         if (!FactionRaids.isEmpty()) {

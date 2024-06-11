@@ -1,9 +1,5 @@
 package ch.jdtt.BurierRaid;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import org.json.simple.JSONObject;
-
 public class FactionRaid {
     private String faction;
     private String totemUUID;
