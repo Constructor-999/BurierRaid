@@ -33,8 +33,8 @@ public class startWarTabCompleter implements TabCompleter {
             return null;
         }
         Factions.getInstance().getAllFactions().forEach(relationFaction -> {
-            if (faction.getRelationWish(relationFaction) == Relation.ENEMY) {
-                enemies.add(faction.getTag());
+            if (faction.getRelationWish(relationFaction).isEnemy()) {
+                enemies.add(relationFaction.getTag());
             }
         });
         return enemies;
