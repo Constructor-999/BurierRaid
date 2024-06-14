@@ -5,7 +5,6 @@ import ch.jdtt.BurierRaid.FactionRaid;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.saicone.rtag.RtagEntity;
-import org.apache.commons.collections4.CollectionUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,10 +16,8 @@ import org.bukkit.entity.Player;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class placeTotem implements CommandExecutor {
     BurierRaid plugin;
@@ -67,17 +64,23 @@ public class placeTotem implements CommandExecutor {
             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You NEED to be in the OverWorld!");
             return false;
         }
+        if (!FactionRaids.isEmpty()) {
+            if(FactionRaids.containsKey(faction.getId())) {
+                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You ALREADY have a totem!");
+                return false;
+            }
+        }
+        int baseClaimRadius = 1;
+        int wildernessRadius = 4;
         World w = Bukkit.getPlayer(sender.getName()).getWorld();
         Location playerLoc = player.getLocation();
         Chunk totemChunk = w.getChunkAt(playerLoc);
         List<Chunk> totemClaimedChunks = new ArrayList<>();
         List<Chunk> totemWildernessChunks = new ArrayList<>();
-        List<Chunk> factonChunkList = new ArrayList<>();
-        faction.getAllClaims().forEach(fLocation -> {
-            factonChunkList.add(fLocation.getChunk());
-        });
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <=1 ; j++) {
+        List<Chunk> factionChunkList = new ArrayList<>();
+        faction.getAllClaims().forEach(fLocation -> factionChunkList.add(fLocation.getChunk()));
+        for (int i = -baseClaimRadius; i <= baseClaimRadius; i++) {
+            for (int j = -baseClaimRadius; j <=baseClaimRadius ; j++) {
                 Chunk checkChunk = w.getChunkAt((totemChunk.getX()+i), totemChunk.getZ()+j);
                 if (faction.getAllClaims().stream().anyMatch(fLocation -> (fLocation.getChunk().equals(checkChunk)))){
                     totemClaimedChunks.add(checkChunk);
@@ -85,9 +88,9 @@ public class placeTotem implements CommandExecutor {
             }
         }
         totemClaimedChunks.forEach(totemClaimedcChunk -> {
-            for (int i = -2; i <= 2; i++) {
-                for (int j = -2; j <=2 ; j++) {
-                    if (Math.round(Math.sqrt(i*i+j*j)) <= 2) {
+            for (int i = -wildernessRadius; i <= wildernessRadius; i++) {
+                for (int j = -wildernessRadius; j <=wildernessRadius ; j++) {
+                    if (Math.round(Math.sqrt(i*i+j*j)) <= wildernessRadius) {
                         Chunk wildernessChunk = w.getChunkAt((totemClaimedcChunk.getX()+i), totemClaimedcChunk.getZ()+j);
                         if (totemWildernessChunks.stream().noneMatch(chunk -> (chunk.equals(wildernessChunk))) &&
                                 totemClaimedChunks.stream().noneMatch(chunk -> (chunk.equals(wildernessChunk)))){
@@ -97,16 +100,77 @@ public class placeTotem implements CommandExecutor {
                 }
             }
         });
-        sender.sendMessage(String.valueOf(totemClaimedChunks.size()));
-        sender.sendMessage(String.valueOf(totemWildernessChunks.size()));
-        sender.sendMessage(String.valueOf(CollectionUtils.containsAny(totemWildernessChunks, factonChunkList)));
-        sender.sendMessage(String.valueOf(faction.getAllClaims().stream().anyMatch(fLocation -> (fLocation.getChunk().equals(totemChunk)))));
-
-        if (!FactionRaids.isEmpty()) {
-            if(FactionRaids.containsKey(faction.getId())) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You ALREADY have a totem!");
-                return false;
+        if (totemWildernessChunks.stream().anyMatch(factionChunkList::contains)) {
+            sender.sendMessage(ChatColor.RED+"The Totem CAN'T be moved here, it needs to follow that pattern:");
+            sender.sendMessage(ChatColor.GRAY+"AAA"+ChatColor.GREEN+"/////"+ChatColor.GRAY+"AAA");
+            sender.sendMessage(ChatColor.GRAY+"AA"+ChatColor.GREEN+"///////"+ChatColor.GRAY+"AA");
+            sender.sendMessage(ChatColor.GRAY+"A"+ChatColor.GREEN+"/////////"+ChatColor.GRAY+"A");
+            sender.sendMessage(ChatColor.GREEN+"///////////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"///////////");
+            sender.sendMessage(ChatColor.GRAY+"A"+ChatColor.GREEN+"/////////"+ChatColor.GRAY+"A");
+            sender.sendMessage(ChatColor.GRAY+"AA"+ChatColor.GREEN+"///////"+ChatColor.GRAY+"AA");
+            sender.sendMessage(ChatColor.GRAY+"AAA"+ChatColor.GREEN+"/////"+ChatColor.GRAY+"AAA");
+            sender.sendMessage("A:any claim, /:Wilderness, C:claimed by the totem's faction");
+            return false;
+        }
+        final double[] totemChunksObsidianDensity = {0.0};
+        final double[] totemChunksWaterDensity = {0.0};
+        final double[] totemChunksLavaDensity = {0.0};
+        final double[] totemChunksOthersDensity = {0.0};
+        AtomicInteger thresholdChunk = new AtomicInteger();
+        totemClaimedChunks.forEach(chunk -> {
+            if ((getDensity(chunk, playerLoc, Material.AIR) + getDensity(chunk, playerLoc, Material.GRASS) +
+                    getDensity(chunk, playerLoc, Material.GRASS_PATH) + getDensity(chunk, playerLoc, Material.LONG_GRASS)
+                    + getDensity(chunk, playerLoc, Material.DIRT)) <= 0.6 || chunk.equals(totemChunk)) {
+                totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] +  getDensity(chunk, playerLoc, Material.OBSIDIAN);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, playerLoc, Material.WATER);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, playerLoc, Material.WATER_BUCKET);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, playerLoc, Material.STATIONARY_WATER);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, playerLoc, Material.LAVA);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, playerLoc, Material.LAVA_BUCKET);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, playerLoc, Material.STATIONARY_LAVA);
+                int anyBlockCounter = 0;
+                for (int i = 0; i <= 15; i++) {
+                    for (int j = 0; j <= 15; j++) {
+                        for (int k = playerLoc.getBlockY()-2; k <= playerLoc.getBlockY()+3; k++) {
+                            if (!chunk.getBlock(i, k, j).getType().equals(Material.OBSIDIAN) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.WATER) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.WATER_BUCKET) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.STATIONARY_WATER) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.LAVA) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.LAVA_BUCKET) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.STATIONARY_LAVA) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.DIRT) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.GRASS) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.GRASS_PATH) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.LONG_GRASS) &&
+                                    !chunk.getBlock(i, k, j).getType().equals(Material.AIR)){
+                                anyBlockCounter++;
+                            }
+                        }
+                    }
+                }
+                totemChunksOthersDensity[0] = totemChunksOthersDensity[0] + (double) anyBlockCounter / (16 * 16 * 6 - 2);
+                thresholdChunk.getAndIncrement();
             }
+        });
+        totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] / thresholdChunk.get();
+        totemChunksWaterDensity[0] = totemChunksWaterDensity[0] / thresholdChunk.get();
+        totemChunksLavaDensity[0] = totemChunksLavaDensity[0] / thresholdChunk.get();
+        totemChunksOthersDensity[0] = totemChunksOthersDensity[0] / thresholdChunk.get();
+        double totemProtectionDensity = totemChunksObsidianDensity[0] * 0.65 +
+                totemChunksWaterDensity[0] * 0.1 +
+                totemChunksLavaDensity[0] * 0.2 +
+                totemChunksOthersDensity[0] * 0.05;
+
+        if (totemProtectionDensity >= 0.5) {
+            sender.sendMessage(ChatColor.RED+"Sorry but you need to remove blocks you have a density of :");
+            sender.sendMessage(ChatColor.DARK_RED+String.valueOf(totemProtectionDensity));
+            sender.sendMessage(ChatColor.BLUE+"The maximum density is 0.65");
+            return false;
         }
         Entity ArmorStandTotem = w.spawnEntity(new Location(w, playerLoc.getBlockX()+0.5,
                 playerLoc.getBlockY(), playerLoc.getBlockZ()+0.5), EntityType.ARMOR_STAND);
@@ -132,5 +196,18 @@ public class placeTotem implements CommandExecutor {
         sender.sendMessage(ChatColor.GREEN + "Now you CAN start "+ChatColor.BOLD+"WARS !!!");
         sender.sendMessage(ChatColor.BLUE + "Wrong place ?, you can always move it with: "+ChatColor.BOLD+"/movetotem");
         return true;
+    }
+    public double getDensity(Chunk chunk, Location loc, Material blockType) {
+        int blockCounter = 0;
+        for (int i = 0; i <= 15; i++) {
+            for (int j = 0; j <= 15; j++) {
+                for (int k = loc.getBlockY()-2; k <= loc.getBlockY()+3; k++) {
+                    if (chunk.getBlock(i, k, j).getType().equals(blockType)){
+                        blockCounter++;
+                    }
+                }
+            }
+        }
+        return (double) blockCounter / (16 * 16 * 6 - 2);
     }
 }

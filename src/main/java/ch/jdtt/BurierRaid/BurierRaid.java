@@ -1,6 +1,7 @@
 package ch.jdtt.BurierRaid;
 
 import ch.jdtt.Commands.moveTotem;
+import ch.jdtt.Commands.protectionDensity;
 import org.bukkit.plugin.java.JavaPlugin;
 import ch.jdtt.Commands.placeTotem;
 import java.io.IOException;
@@ -37,5 +38,6 @@ public class BurierRaid extends JavaPlugin {
 
         getCommand("placeTotem").setExecutor(new placeTotem(this));
         getCommand("moveTotem").setExecutor(new moveTotem(this));
+        getCommand("protectionDensity").setExecutor(new protectionDensity(this));
     }
 }

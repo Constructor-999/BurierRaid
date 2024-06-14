@@ -4,6 +4,9 @@ import ch.jdtt.BurierRaid.BurierRaid;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
+import com.massivecraft.factions.Factions;
+import com.massivecraft.factions.iface.RelationParticipator;
+import com.massivecraft.factions.struct.Relation;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -23,10 +26,17 @@ public class startWarTabCompleter implements TabCompleter {
         FPlayer fplayer = FPlayers.getInstance().getByPlayer(Bukkit.getPlayer(sender.getName()));
         List<String> enemies = new ArrayList<>();
         if (!fplayer.hasFaction()) {
-            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You are NOT in a faction!");
             return null;
         }
         Faction faction = fplayer.getFaction();
+        if (faction.getRelationCount(Relation.ENEMY) == 0) {
+            return null;
+        }
+        Factions.getInstance().getAllFactions().forEach(relationFaction -> {
+            if (faction.getRelationWish(relationFaction) == Relation.ENEMY) {
+                enemies.add(faction.getTag());
+            }
+        });
         return enemies;
     }
 }

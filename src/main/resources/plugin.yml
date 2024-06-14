@@ -9,5 +9,8 @@ commands:
   moveTotem:
     description: Moves the flag that others factions will capture, &lcYOU CAN'T MOVE IT DURING A RAID
     permission: burierraid.moveTotem
+  protectionDensity:
+      description: Get the protection density of a totem base
+      permission: burierraid.protectionDensity
   startWar:
     description: Start a War with one or multiple others enemy factions

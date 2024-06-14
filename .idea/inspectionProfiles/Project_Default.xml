@@ -11,6 +11,8 @@
           <option value="BurierRaid" />
           <option value="BurierRaid" />
           <option value="BurierRaid" />
+          <option value="BurierRaid" />
+          <option value="BurierRaid" />
         </list>
       </option>
       <option name="ignoredPackages">
@@ -21,6 +23,8 @@
           <option value="com.google.guava:guava:17.0" />
           <option value="junit:junit:4.10" />
           <option value="org.yaml:snakeyaml:1.15" />
+          <option value="com.google.guava:guava:21.0" />
+          <option value="org.yaml:snakeyaml:1.19" />
         </list>
       </option>
       <option name="ignoredReasons">
@@ -31,6 +35,8 @@
           <option value="Fixed in branch" />
           <option value="In progress" />
           <option value="Not exploitable" />
+          <option value="Not exploitable" />
+          <option value="Fixed in branch" />
         </list>
       </option>
     </inspection_tool>
