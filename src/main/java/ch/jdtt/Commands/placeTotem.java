@@ -2,6 +2,7 @@ package ch.jdtt.Commands;
 
 import ch.jdtt.BurierRaid.BurierRaid;
 import ch.jdtt.BurierRaid.FactionRaid;
+import ch.jdtt.BurierRaid.Utils;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.saicone.rtag.RtagEntity;
@@ -24,6 +25,7 @@ public class placeTotem implements CommandExecutor {
     File FactionRaidListF = new File("./plugins/BurierRaid/FactionRaid.json");
     Map<String, FactionRaid> FactionRaids = new LinkedHashMap<>();
     Type FactionRaidMapType = new TypeToken<Map<String, FactionRaid>>(){}.getType();
+    Utils utils = new Utils();
     public placeTotem(BurierRaid plugin) {
         this.plugin = plugin;
     }
@@ -122,16 +124,16 @@ public class placeTotem implements CommandExecutor {
         final double[] totemChunksOthersDensity = {0.0};
         AtomicInteger thresholdChunk = new AtomicInteger();
         totemClaimedChunks.forEach(chunk -> {
-            if ((getDensity(chunk, playerLoc, Material.AIR) + getDensity(chunk, playerLoc, Material.GRASS) +
-                    getDensity(chunk, playerLoc, Material.GRASS_PATH) + getDensity(chunk, playerLoc, Material.LONG_GRASS)
-                    + getDensity(chunk, playerLoc, Material.DIRT)) <= 0.6 || chunk.equals(totemChunk)) {
-                totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] +  getDensity(chunk, playerLoc, Material.OBSIDIAN);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, playerLoc, Material.WATER);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, playerLoc, Material.WATER_BUCKET);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, playerLoc, Material.STATIONARY_WATER);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, playerLoc, Material.LAVA);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, playerLoc, Material.LAVA_BUCKET);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, playerLoc, Material.STATIONARY_LAVA);
+            if ((utils.getDensity(chunk, playerLoc, Material.AIR) + utils.getDensity(chunk, playerLoc, Material.GRASS) +
+                    utils.getDensity(chunk, playerLoc, Material.GRASS_PATH) + utils.getDensity(chunk, playerLoc, Material.LONG_GRASS)
+                    + utils.getDensity(chunk, playerLoc, Material.DIRT)) <= 0.6 || chunk.equals(totemChunk)) {
+                totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] +  utils.getDensity(chunk, playerLoc, Material.OBSIDIAN);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, playerLoc, Material.WATER);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, playerLoc, Material.WATER_BUCKET);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, playerLoc, Material.STATIONARY_WATER);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, playerLoc, Material.LAVA);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, playerLoc, Material.LAVA_BUCKET);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, playerLoc, Material.STATIONARY_LAVA);
                 int anyBlockCounter = 0;
                 for (int i = 0; i <= 15; i++) {
                     for (int j = 0; j <= 15; j++) {
@@ -196,18 +198,5 @@ public class placeTotem implements CommandExecutor {
         sender.sendMessage(ChatColor.GREEN + "Now you CAN start "+ChatColor.BOLD+"WARS !!!");
         sender.sendMessage(ChatColor.BLUE + "Wrong place ?, you can always move it with: "+ChatColor.BOLD+"/movetotem");
         return true;
-    }
-    public double getDensity(Chunk chunk, Location loc, Material blockType) {
-        int blockCounter = 0;
-        for (int i = 0; i <= 15; i++) {
-            for (int j = 0; j <= 15; j++) {
-                for (int k = loc.getBlockY()-2; k <= loc.getBlockY()+3; k++) {
-                    if (chunk.getBlock(i, k, j).getType().equals(blockType)){
-                        blockCounter++;
-                    }
-                }
-            }
-        }
-        return (double) blockCounter / (16 * 16 * 6 - 2);
     }
 }

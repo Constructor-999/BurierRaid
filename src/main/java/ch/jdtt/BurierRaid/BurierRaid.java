@@ -1,6 +1,6 @@
 package ch.jdtt.BurierRaid;
 
-import ch.jdtt.BurierRaid.autocompeter.startWarTabCompleter;
+import ch.jdtt.autocompeter.startWarTabCompleter;
 import ch.jdtt.Commands.moveTotem;
 import ch.jdtt.Commands.protectionDensity;
 import ch.jdtt.Commands.startWar;

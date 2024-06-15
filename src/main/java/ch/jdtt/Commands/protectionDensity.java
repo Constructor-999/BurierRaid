@@ -2,6 +2,7 @@ package ch.jdtt.Commands;
 
 import ch.jdtt.BurierRaid.BurierRaid;
 import ch.jdtt.BurierRaid.FactionRaid;
+import ch.jdtt.BurierRaid.Utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -16,7 +17,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
@@ -31,6 +31,7 @@ public class protectionDensity implements CommandExecutor {
     File FactionRaidListF = new File("./plugins/BurierRaid/FactionRaid.json");
     Map<String, FactionRaid> FactionRaids = new LinkedHashMap<>();
     Type FactionRaidMapType = new TypeToken<Map<String, FactionRaid>>(){}.getType();
+    Utils utils = new Utils();
     public protectionDensity(BurierRaid plugin) {
         this.plugin = plugin;
     }
@@ -142,17 +143,18 @@ public class protectionDensity implements CommandExecutor {
         final double[] totemChunksOthersDensity = {0.0};
         AtomicInteger thresholdChunk = new AtomicInteger();
         Location finalTotemLocation = totemLocation;
+
         totemClaimedChunks.forEach(chunk -> {
-            if ((getDensity(chunk, finalTotemLocation, Material.AIR) + getDensity(chunk, finalTotemLocation, Material.GRASS) +
-                    getDensity(chunk, finalTotemLocation, Material.GRASS_PATH) + getDensity(chunk, finalTotemLocation, Material.LONG_GRASS)
-            + getDensity(chunk, finalTotemLocation, Material.DIRT)) <= 0.6 || chunk.equals(totemChunk)) {
-                totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] +  getDensity(chunk, finalTotemLocation, Material.OBSIDIAN);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, finalTotemLocation, Material.WATER);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, finalTotemLocation, Material.WATER_BUCKET);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  getDensity(chunk, finalTotemLocation, Material.STATIONARY_WATER);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, finalTotemLocation, Material.LAVA);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, finalTotemLocation, Material.LAVA_BUCKET);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  getDensity(chunk, finalTotemLocation, Material.STATIONARY_LAVA);
+            if ((utils.getDensity(chunk, finalTotemLocation, Material.AIR) + utils.getDensity(chunk, finalTotemLocation, Material.GRASS) +
+                    utils.getDensity(chunk, finalTotemLocation, Material.GRASS_PATH) + utils.getDensity(chunk, finalTotemLocation, Material.LONG_GRASS)
+            + utils.getDensity(chunk, finalTotemLocation, Material.DIRT)) <= 0.6 || chunk.equals(totemChunk)) {
+                totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.OBSIDIAN);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.WATER);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.WATER_BUCKET);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.STATIONARY_WATER);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.LAVA);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.LAVA_BUCKET);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.STATIONARY_LAVA);
                 int anyBlockCounter = 0;
                 for (int i = 0; i <= 15; i++) {
                     for (int j = 0; j <= 15; j++) {
@@ -195,18 +197,5 @@ public class protectionDensity implements CommandExecutor {
             sender.sendMessage(ChatColor.GREEN+"You have a protection density of "+String.valueOf(totemProtectionDensity));
         }
         return true;
-    }
-    public double getDensity(Chunk chunk, Location loc, Material blockType) {
-        int blockCounter = 0;
-        for (int i = 0; i <= 15; i++) {
-            for (int j = 0; j <= 15; j++) {
-                for (int k = loc.getBlockY()-2; k <= loc.getBlockY()+3; k++) {
-                    if (chunk.getBlock(i, k, j).getType().equals(blockType)){
-                        blockCounter++;
-                    }
-                }
-            }
-        }
-        return (double) blockCounter / (16 * 16 * 6 - 2);
     }
 }
