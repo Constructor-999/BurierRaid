@@ -81,10 +81,6 @@ public class protectionDensity implements CommandExecutor {
                 sender.sendMessage( ChatColor.BLUE + "You can place one with: "+ChatColor.BOLD+"/placeTotem");
                 return false;
             }
-            if (FactionRaids.get(faction.getId()).getInWar()) {
-                sender.sendMessage( ChatColor.RED + "You are in a "+ChatColor.BOLD+"WAR!");
-                return false;
-            }
         }
         int baseClaimRadius = 1;
         int wildernessRadius = 4;

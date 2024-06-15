@@ -186,7 +186,7 @@ public class placeTotem implements CommandExecutor {
         Location totemLocation = ArmorStandTotem.getLocation();
         FactionRaids.put(faction.getId(),new FactionRaid(faction.getTag(),
                 ArmorStandTotem.getUniqueId().toString(),
-                false,
+                false, "",
                 totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
         try {
             FileWriter JSONwriter = new FileWriter(FactionRaidListF);

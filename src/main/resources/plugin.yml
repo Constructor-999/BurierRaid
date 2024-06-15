@@ -14,3 +14,5 @@ commands:
       permission: burierraid.protectionDensity
   startWar:
     description: Start a War with one or multiple others enemy factions
+  joinWar:
+    description: Internal server command

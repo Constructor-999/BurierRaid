@@ -192,7 +192,7 @@ public class moveTotem implements CommandExecutor {
                 Location totemLocation = ArmorStandTotem.getLocation();
                 FactionRaids.replace(faction.getId(), new FactionRaid(faction.getTag(),
                         ArmorStandTotem.getUniqueId().toString(),
-                        false,
+                        false, "",
                         totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
             }
         }

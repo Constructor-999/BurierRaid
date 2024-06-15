@@ -3,6 +3,8 @@ package ch.jdtt.Commands;
 import ch.jdtt.BurierRaid.BurierRaid;
 import ch.jdtt.BurierRaid.FactionRaid;
 import ch.jdtt.BurierRaid.Utils;
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -43,6 +45,10 @@ public class startWar implements CommandExecutor {
         if (!cmdName.equalsIgnoreCase("startWar")){
             return false;
         }
+        if (args.length == 0) {
+            sender.sendMessage( ChatColor.RED + "You need to add one or multiple factions that you are in ENEMY");
+            return false;
+        }
         if (!FactionRaidListF.exists()) {
             plugin.onEnable();
         }
@@ -76,7 +82,7 @@ public class startWar implements CommandExecutor {
             }
             if (FactionRaids.get(faction.getId()).getInWar()) {
                 sender.sendMessage( ChatColor.RED + "You are already in a "+ChatColor.BOLD+"WAR!");
-                return false;
+                //return false;
             }
         }
         for (String arg : args) {
@@ -94,14 +100,19 @@ public class startWar implements CommandExecutor {
             }
             if (Factions.getInstance().getByTag(arg).getFPlayerLeader().isOffline()) {
                 sender.sendMessage(ChatColor.RED+"The the owner of "+ChatColor.BOLD+arg+ChatColor.RED+" is OFFLINE!");
-                return false;
+                //return false;
             }
         }
         int baseClaimRadius = 1;
         int wildernessRadius = 4;
         World w = Bukkit.getPlayer(sender.getName()).getWorld();
-        Location playerLoc = player.getLocation();
-        Chunk totemChunk = w.getChunkAt(playerLoc);
+        Location totemLocation = player.getLocation();
+        for (Entity ArmorStandTotem : w.getEntities()) {
+            if (ArmorStandTotem.getUniqueId().toString().equals(FactionRaids.get(faction.getId()).getTotemUUID())) {
+                totemLocation = ArmorStandTotem.getLocation();
+            }
+        }
+        Chunk totemChunk = w.getChunkAt(totemLocation);
         List<Chunk> totemClaimedChunks = new ArrayList<>();
         List<Chunk> totemWildernessChunks = new ArrayList<>();
         List<Chunk> factionChunkList = new ArrayList<>();
@@ -148,21 +159,22 @@ public class startWar implements CommandExecutor {
         final double[] totemChunksLavaDensity = {0.0};
         final double[] totemChunksOthersDensity = {0.0};
         AtomicInteger thresholdChunk = new AtomicInteger();
+        Location finalTotemLocation = totemLocation;
         totemClaimedChunks.forEach(chunk -> {
-            if ((utils.getDensity(chunk, playerLoc, Material.AIR) + utils.getDensity(chunk, playerLoc, Material.GRASS) +
-                    utils.getDensity(chunk, playerLoc, Material.GRASS_PATH) + utils.getDensity(chunk, playerLoc, Material.LONG_GRASS)
-                    + utils.getDensity(chunk, playerLoc, Material.DIRT)) <= 0.6 || chunk.equals(totemChunk)) {
-                totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] +  utils.getDensity(chunk, playerLoc, Material.OBSIDIAN);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, playerLoc, Material.WATER);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, playerLoc, Material.WATER_BUCKET);
-                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, playerLoc, Material.STATIONARY_WATER);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, playerLoc, Material.LAVA);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, playerLoc, Material.LAVA_BUCKET);
-                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, playerLoc, Material.STATIONARY_LAVA);
+            if ((utils.getDensity(chunk, finalTotemLocation, Material.AIR) + utils.getDensity(chunk, finalTotemLocation, Material.GRASS) +
+                    utils.getDensity(chunk, finalTotemLocation, Material.GRASS_PATH) + utils.getDensity(chunk, finalTotemLocation, Material.LONG_GRASS)
+                    + utils.getDensity(chunk, finalTotemLocation, Material.DIRT)) <= 0.6 || chunk.equals(totemChunk)) {
+                totemChunksObsidianDensity[0] = totemChunksObsidianDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.OBSIDIAN);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.WATER);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.WATER_BUCKET);
+                totemChunksWaterDensity[0] = totemChunksWaterDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.STATIONARY_WATER);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.LAVA);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.LAVA_BUCKET);
+                totemChunksLavaDensity[0] = totemChunksLavaDensity[0] +  utils.getDensity(chunk, finalTotemLocation, Material.STATIONARY_LAVA);
                 int anyBlockCounter = 0;
                 for (int i = 0; i <= 15; i++) {
                     for (int j = 0; j <= 15; j++) {
-                        for (int k = playerLoc.getBlockY()-2; k <= playerLoc.getBlockY()+3; k++) {
+                        for (int k = finalTotemLocation.getBlockY()-2; k <= finalTotemLocation.getBlockY()+3; k++) {
                             if (!chunk.getBlock(i, k, j).getType().equals(Material.OBSIDIAN) &&
                                     !chunk.getBlock(i, k, j).getType().equals(Material.WATER) &&
                                     !chunk.getBlock(i, k, j).getType().equals(Material.WATER_BUCKET) &&
@@ -198,12 +210,22 @@ public class startWar implements CommandExecutor {
             sender.sendMessage(ChatColor.BLUE+"The maximum density is 0.65");
             return false;
         }
+
+        String warHash = Hashing.sha256().hashString(Arrays.toString(args), Charsets.UTF_8).toString();
+
+        BaseComponent[] JoinMessage = new ComponentBuilder("Join the WAR!").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/say DeezNuts")).create();
+        BaseComponent[] DeclineMessage = new ComponentBuilder("I decline").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/say nunuh")).create();
+        for (String arg : args) {
+            //Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().sendMessage(ChatColor.RED+""+ChatColor.BOLD+faction.getTag()+" started a war with your faction.");
+            //Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(JoinMessage);
+            //Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(DeclineMessage);
+        }
+
         for (Entity ArmorStandTotem : w.getEntities()) {
             if (ArmorStandTotem.getUniqueId().toString().equals(FactionRaids.get(faction.getId()).getTotemUUID())) {
-                Location totemLocation = ArmorStandTotem.getLocation();
                 FactionRaids.replace(faction.getId(), new FactionRaid(faction.getTag(),
                         ArmorStandTotem.getUniqueId().toString(),
-                        true,
+                        true, warHash,
                         totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
             }
         }
@@ -213,13 +235,6 @@ public class startWar implements CommandExecutor {
             JSONwriter.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-        BaseComponent[] JoinMessage = new ComponentBuilder("Join the WAR!").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/say DeezNuts")).create();
-        BaseComponent[] DeclineMessage = new ComponentBuilder("I decline").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/say nunuh")).create();
-        for (String arg : args) {
-            Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().sendMessage(ChatColor.RED+""+ChatColor.BOLD+faction.getTag()+" started a war with your faction.");
-            Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(JoinMessage);
-            Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(DeclineMessage);
         }
         return true;
     }
