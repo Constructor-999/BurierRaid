@@ -1,15 +1,17 @@
 package ch.jdtt.BurierRaid;
 
+import ch.jdtt.Commands.*;
 import ch.jdtt.autocompeter.startWarTabCompleter;
-import ch.jdtt.Commands.moveTotem;
-import ch.jdtt.Commands.protectionDensity;
-import ch.jdtt.Commands.startWar;
+import com.massivecraft.factions.Faction;
 import org.bukkit.plugin.java.JavaPlugin;
-import ch.jdtt.Commands.placeTotem;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BurierRaid extends JavaPlugin {
     @Override
@@ -19,6 +21,7 @@ public class BurierRaid extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        WarConstructor warConstructor = new WarConstructor();
         String baseDir = "./plugins/BurierRaid/";
         Path baseDirPath = Paths.get(baseDir);
         Path totemList = Paths.get(baseDir+"FactionRaid.json");
@@ -41,7 +44,9 @@ public class BurierRaid extends JavaPlugin {
         getCommand("placeTotem").setExecutor(new placeTotem(this));
         getCommand("moveTotem").setExecutor(new moveTotem(this));
         getCommand("protectionDensity").setExecutor(new protectionDensity(this));
-        getCommand("startWar").setExecutor(new startWar(this));
+        getCommand("startWar").setExecutor(new startWar(this, warConstructor));
         getCommand("startWar").setTabCompleter(new startWarTabCompleter());
+        getCommand("joinWar").setExecutor(new joinWar(this, warConstructor));
+        getCommand("testCommand").setExecutor(new testCommand(this));
     }
 }

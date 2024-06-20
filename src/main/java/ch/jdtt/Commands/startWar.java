@@ -1,8 +1,6 @@
 package ch.jdtt.Commands;
 
-import ch.jdtt.BurierRaid.BurierRaid;
-import ch.jdtt.BurierRaid.FactionRaid;
-import ch.jdtt.BurierRaid.Utils;
+import ch.jdtt.BurierRaid.*;
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
@@ -35,8 +33,10 @@ public class startWar implements CommandExecutor {
     Map<String, FactionRaid> FactionRaids = new LinkedHashMap<>();
     Type FactionRaidMapType = new TypeToken<Map<String, FactionRaid>>(){}.getType();
     Utils utils = new Utils();
-    public startWar(BurierRaid plugin) {
+    WarConstructor warConstructor;
+    public startWar(BurierRaid plugin, WarConstructor warConstructor) {
         this.plugin = plugin;
+        this.warConstructor = warConstructor;
     }
 
     @Override
@@ -82,7 +82,7 @@ public class startWar implements CommandExecutor {
             }
             if (FactionRaids.get(faction.getId()).getInWar()) {
                 sender.sendMessage( ChatColor.RED + "You are already in a "+ChatColor.BOLD+"WAR!");
-                //return false;
+                return false;
             }
         }
         for (String arg : args) {
@@ -100,7 +100,7 @@ public class startWar implements CommandExecutor {
             }
             if (Factions.getInstance().getByTag(arg).getFPlayerLeader().isOffline()) {
                 sender.sendMessage(ChatColor.RED+"The the owner of "+ChatColor.BOLD+arg+ChatColor.RED+" is OFFLINE!");
-                //return false;
+                return false;
             }
         }
         int baseClaimRadius = 1;
@@ -211,16 +211,19 @@ public class startWar implements CommandExecutor {
             return false;
         }
 
-        String warHash = Hashing.sha256().hashString(Arrays.toString(args), Charsets.UTF_8).toString();
 
-        BaseComponent[] JoinMessage = new ComponentBuilder("Join the WAR!").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/say DeezNuts")).create();
+        List<Faction> factionsRequested = new ArrayList<>();
+        for (String arg : args) {
+            factionsRequested.add(Factions.getInstance().getByTag(arg));
+        }
+        String warHash = warConstructor.create(faction, factionsRequested);
+        BaseComponent[] JoinMessage = new ComponentBuilder("Join the WAR!").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/joinWar " + warHash)).create();
         BaseComponent[] DeclineMessage = new ComponentBuilder("I decline").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/say nunuh")).create();
         for (String arg : args) {
-            //Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().sendMessage(ChatColor.RED+""+ChatColor.BOLD+faction.getTag()+" started a war with your faction.");
-            //Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(JoinMessage);
-            //Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(DeclineMessage);
+            Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().sendMessage(ChatColor.RED+""+ChatColor.BOLD+faction.getTag()+" started a war with your faction.");
+            Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(JoinMessage);
+            Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(DeclineMessage);
         }
-
         for (Entity ArmorStandTotem : w.getEntities()) {
             if (ArmorStandTotem.getUniqueId().toString().equals(FactionRaids.get(faction.getId()).getTotemUUID())) {
                 FactionRaids.replace(faction.getId(), new FactionRaid(faction.getTag(),

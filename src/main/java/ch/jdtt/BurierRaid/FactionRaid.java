@@ -27,15 +27,8 @@ public class FactionRaid {
     public String getWarHash() {
         return warHash;
     }
-}
-
-class TotemLocation {
-    private Double x;
-    private Double y;
-    private Double z;
-    public TotemLocation(Double x, Double y, Double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public TotemLocation getLocation() {
+        return location;
     }
 }
+

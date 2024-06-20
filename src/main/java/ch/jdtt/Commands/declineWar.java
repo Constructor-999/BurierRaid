@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class joinWar implements CommandExecutor {
+public class declineWar implements CommandExecutor {
     BurierRaid plugin;
     File FactionRaidListF = new File("./plugins/BurierRaid/FactionRaid.json");
     Map<String, FactionRaid> FactionRaids = new LinkedHashMap<>();
@@ -36,7 +36,7 @@ public class joinWar implements CommandExecutor {
     Utils utils = new Utils();
     WarConstructor warConstructor;
 
-    public joinWar(BurierRaid plugin, WarConstructor warConstructor) {
+    public declineWar(BurierRaid plugin, WarConstructor warConstructor) {
         this.plugin = plugin;
         this.warConstructor = warConstructor;
     }
