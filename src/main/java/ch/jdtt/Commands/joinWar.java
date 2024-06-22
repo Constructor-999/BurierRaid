@@ -7,6 +7,7 @@ import ch.jdtt.BurierRaid.WarConstructor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.massivecraft.factions.FLocation;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
@@ -190,7 +191,13 @@ public class joinWar implements CommandExecutor {
             sender.sendMessage(ChatColor.BLUE+"The maximum density is 0.65");
             return false;
         }
-        String warStarter = warConstructor.join(faction, args[0]);
+
+        List<FLocation> totemClaims = new ArrayList<>();
+        factionChunkList.forEach(chunk -> {
+            totemClaims.add(FLocation.wrap(chunk));
+        });
+
+        String warStarter = warConstructor.join(faction, args[0], totemWildernessChunks, totemClaims);
         for (Entity ArmorStandTotem : w.getEntities()) {
             if (ArmorStandTotem.getUniqueId().toString().equals(FactionRaids.get(faction.getId()).getTotemUUID())) {
                 FactionRaids.replace(faction.getId(), new FactionRaid(faction.getTag(),

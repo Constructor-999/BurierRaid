@@ -6,10 +6,7 @@ import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-import com.massivecraft.factions.Faction;
-import com.massivecraft.factions.Factions;
+import com.massivecraft.factions.*;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -211,12 +208,17 @@ public class startWar implements CommandExecutor {
             return false;
         }
 
+        List<FLocation> totemClaims = new ArrayList<>();
+        factionChunkList.forEach(chunk -> {
+            totemClaims.add(FLocation.wrap(chunk));
+        });
 
         List<Faction> factionsRequested = new ArrayList<>();
         for (String arg : args) {
             factionsRequested.add(Factions.getInstance().getByTag(arg));
         }
-        String warHash = warConstructor.create(faction, factionsRequested);
+
+        String warHash = warConstructor.create(faction, factionsRequested, totemClaims, totemWildernessChunks);
         BaseComponent[] JoinMessage = new ComponentBuilder("Join the WAR!").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/joinWar " + warHash)).create();
         BaseComponent[] DeclineMessage = new ComponentBuilder("I decline").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/declineWar " + warHash)).create();
         for (String arg : args) {

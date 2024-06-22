@@ -30,5 +30,8 @@ public class FactionRaid {
     public TotemLocation getLocation() {
         return location;
     }
+    public String getFaction() {
+        return faction;
+    }
 }
 
