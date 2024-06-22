@@ -16,5 +16,5 @@ commands:
     description: Start a War with one or multiple others enemy factions
   joinWar:
     description: Internal server command
-  testCommand:
-    description: dev command
+  declineWar:
+    description: Internal server command

@@ -118,6 +118,24 @@ public class placeTotem implements CommandExecutor {
             sender.sendMessage("A:any claim, /:Wilderness, C:claimed by the totem's faction");
             return false;
         }
+        List<Chunk> anyFactionChunkList = new ArrayList<>();
+        Factions.getInstance().getAllFactions().forEach(anyFaction -> anyFaction.getAllClaims().forEach(fLocation -> anyFactionChunkList.add(fLocation.getChunk())));
+        if (totemWildernessChunks.stream().anyMatch(anyFactionChunkList::contains)) {
+            sender.sendMessage(ChatColor.RED+"The Totem CAN'T be moved here, it needs to follow that pattern:");
+            sender.sendMessage(ChatColor.GRAY+"AAA"+ChatColor.GREEN+"/////"+ChatColor.GRAY+"AAA");
+            sender.sendMessage(ChatColor.GRAY+"AA"+ChatColor.GREEN+"///////"+ChatColor.GRAY+"AA");
+            sender.sendMessage(ChatColor.GRAY+"A"+ChatColor.GREEN+"/////////"+ChatColor.GRAY+"A");
+            sender.sendMessage(ChatColor.GREEN+"///////////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"///////////");
+            sender.sendMessage(ChatColor.GRAY+"A"+ChatColor.GREEN+"/////////"+ChatColor.GRAY+"A");
+            sender.sendMessage(ChatColor.GRAY+"AA"+ChatColor.GREEN+"///////"+ChatColor.GRAY+"AA");
+            sender.sendMessage(ChatColor.GRAY+"AAA"+ChatColor.GREEN+"/////"+ChatColor.GRAY+"AAA");
+            sender.sendMessage("A:any claim, /:Wilderness, C:claimed by the totem's faction");
+            return false;
+        }
         final double[] totemChunksObsidianDensity = {0.0};
         final double[] totemChunksWaterDensity = {0.0};
         final double[] totemChunksLavaDensity = {0.0};

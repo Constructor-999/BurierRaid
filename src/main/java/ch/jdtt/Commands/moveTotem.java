@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
+import com.massivecraft.factions.Factions;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -114,6 +115,24 @@ public class moveTotem implements CommandExecutor {
             }
         });
         if (totemWildernessChunks.stream().anyMatch(factionChunkList::contains)) {
+            sender.sendMessage(ChatColor.RED+"The Totem CAN'T be moved here, it needs to follow that pattern:");
+            sender.sendMessage(ChatColor.GRAY+"AAA"+ChatColor.GREEN+"/////"+ChatColor.GRAY+"AAA");
+            sender.sendMessage(ChatColor.GRAY+"AA"+ChatColor.GREEN+"///////"+ChatColor.GRAY+"AA");
+            sender.sendMessage(ChatColor.GRAY+"A"+ChatColor.GREEN+"/////////"+ChatColor.GRAY+"A");
+            sender.sendMessage(ChatColor.GREEN+"///////////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"////"+ChatColor.BLUE+"CCC"+ChatColor.GREEN+"////");
+            sender.sendMessage(ChatColor.GREEN+"///////////");
+            sender.sendMessage(ChatColor.GRAY+"A"+ChatColor.GREEN+"/////////"+ChatColor.GRAY+"A");
+            sender.sendMessage(ChatColor.GRAY+"AA"+ChatColor.GREEN+"///////"+ChatColor.GRAY+"AA");
+            sender.sendMessage(ChatColor.GRAY+"AAA"+ChatColor.GREEN+"/////"+ChatColor.GRAY+"AAA");
+            sender.sendMessage("A:any claim, /:Wilderness, C:claimed by the totem's faction");
+            return false;
+        }
+        List<Chunk> anyFactionChunkList = new ArrayList<>();
+        Factions.getInstance().getAllFactions().forEach(anyFaction -> anyFaction.getAllClaims().forEach(fLocation -> anyFactionChunkList.add(fLocation.getChunk())));
+        if (totemWildernessChunks.stream().anyMatch(anyFactionChunkList::contains)) {
             sender.sendMessage(ChatColor.RED+"The Totem CAN'T be moved here, it needs to follow that pattern:");
             sender.sendMessage(ChatColor.GRAY+"AAA"+ChatColor.GREEN+"/////"+ChatColor.GRAY+"AAA");
             sender.sendMessage(ChatColor.GRAY+"AA"+ChatColor.GREEN+"///////"+ChatColor.GRAY+"AA");

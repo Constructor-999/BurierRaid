@@ -8,14 +8,14 @@ import java.util.List;
 
 public class WarsStructure {
     private Faction starter;
-    private List<Faction> requested;
+    private WarObservableArrayList<Faction> requested;
     private WarObservableArrayList<Faction> joined;
     private Objective objective;
 
-    public WarsStructure(Faction starter, List<Faction> requested, String warHash, WarChangeListener listener, Objective objective) {
+    public WarsStructure(Faction starter, List<Faction> requested, WarChangeListener requestedListener, String warHash, WarChangeListener joiningListener, Objective objective) {
         this.starter = starter;
-        this.requested = requested;
-        joined = new WarObservableArrayList<>(listener, warHash);
+        this.requested = new WarObservableArrayList<>(requested, requestedListener, warHash);
+        joined = new WarObservableArrayList<>(joiningListener, warHash);
         this.objective = objective;
     }
 
@@ -24,6 +24,9 @@ public class WarsStructure {
     }
     public void joinWar(Faction joiningFaction) {
         this.joined.add(joiningFaction);
+    }
+    public void declineWar(Faction factionDeclining) {
+        this.requested.remove(factionDeclining);
     }
     public WarObservableArrayList<Faction> getJoined() {
         return joined;

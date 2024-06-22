@@ -218,7 +218,7 @@ public class startWar implements CommandExecutor {
         }
         String warHash = warConstructor.create(faction, factionsRequested);
         BaseComponent[] JoinMessage = new ComponentBuilder("Join the WAR!").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/joinWar " + warHash)).create();
-        BaseComponent[] DeclineMessage = new ComponentBuilder("I decline").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/say nunuh")).create();
+        BaseComponent[] DeclineMessage = new ComponentBuilder("I decline").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/declineWar " + warHash)).create();
         for (String arg : args) {
             Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().sendMessage(ChatColor.RED+""+ChatColor.BOLD+faction.getTag()+" started a war with your faction.");
             Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(JoinMessage);

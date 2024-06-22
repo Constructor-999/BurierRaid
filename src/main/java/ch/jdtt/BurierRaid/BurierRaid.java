@@ -47,6 +47,6 @@ public class BurierRaid extends JavaPlugin {
         getCommand("startWar").setExecutor(new startWar(this, warConstructor));
         getCommand("startWar").setTabCompleter(new startWarTabCompleter());
         getCommand("joinWar").setExecutor(new joinWar(this, warConstructor));
-        getCommand("testCommand").setExecutor(new testCommand(this));
+        getCommand("declineWar").setExecutor(new declineWar(this, warConstructor));
     }
 }

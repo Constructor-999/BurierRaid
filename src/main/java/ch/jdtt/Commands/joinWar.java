@@ -70,7 +70,6 @@ public class joinWar implements CommandExecutor {
             sender.sendMessage( ChatColor.RED + "You thought you could beat a robot? Wrong HASH you stupid");
             return false;
         }
-
         FPlayer fplayer = FPlayers.getInstance().getByPlayer(Bukkit.getPlayer(sender.getName()));
         Player player = Bukkit.getPlayer(sender.getName());
         if (!fplayer.hasFaction()) {
@@ -78,6 +77,10 @@ public class joinWar implements CommandExecutor {
             return false;
         }
         Faction faction = fplayer.getFaction();
+        if (FactionRaids.get(faction.getId()).getInWar()) {
+            sender.sendMessage( ChatColor.RED + "You are in a "+ChatColor.BOLD+"WAR!");
+            return false;
+        }
         int baseClaimRadius = 1;
         int wildernessRadius = 4;
         Location totemLocation = player.getLocation();
@@ -188,6 +191,14 @@ public class joinWar implements CommandExecutor {
             return false;
         }
         String warStarter = warConstructor.join(faction, args[0]);
+        for (Entity ArmorStandTotem : w.getEntities()) {
+            if (ArmorStandTotem.getUniqueId().toString().equals(FactionRaids.get(faction.getId()).getTotemUUID())) {
+                FactionRaids.replace(faction.getId(), new FactionRaid(faction.getTag(),
+                        ArmorStandTotem.getUniqueId().toString(),
+                        true, args[0],
+                        totemLocation.getX(), totemLocation.getY(), totemLocation.getZ()));
+            }
+        }
         try {
             FileWriter JSONwriter = new FileWriter(FactionRaidListF);
             JSONwriter.write(gson.toJson(FactionRaids));
