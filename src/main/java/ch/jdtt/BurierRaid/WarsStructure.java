@@ -17,6 +17,11 @@ public class WarsStructure {
     private Objective objective;
     private List<Chunk> wildernessChunks = new ArrayList<>();
     private Map<String, List<FLocation>> totemChunks = new LinkedHashMap<>();
+    private Map<String, Map<String, Integer>> allies = new LinkedHashMap<>();
+    private Faction winnerFaction;
+    private Faction defeatedFaction;
+    private Map<String, Faction> reward = new LinkedHashMap<>();
+    private Integer time;
 
     public WarsStructure(Faction starter, List<FLocation> totemChunks, List<Chunk> wildernessChunks, List<Faction> requested, WarChangeListener requestedListener, String warHash, WarChangeListener joiningListener, Objective objective) {
         this.starter = starter;
@@ -52,5 +57,42 @@ public class WarsStructure {
     }
     public Map<String, List<FLocation>> getTotemChunks() {
         return totemChunks;
+    }
+    public void joinWarAsAlly(String warHash, Faction allyFaction, String assaultedFaction) {
+        Map<String, Integer> participantsByFaction = new LinkedHashMap<>();
+        if (allies.containsKey(warHash)) {
+            if (allies.get(warHash).containsKey(assaultedFaction)) {
+                allies.get(warHash).replace(assaultedFaction, allies.get(warHash).get(assaultedFaction) + allyFaction.getOnlinePlayers().size());
+            } else {
+                allies.get(warHash).put(assaultedFaction, allyFaction.getOnlinePlayers().size());
+            }
+        } else {
+            participantsByFaction.put(assaultedFaction, allyFaction.getOnlinePlayers().size());
+            allies.put(warHash, participantsByFaction);
+        }
+    }
+    public Integer getAllies(String warHash, String assaultedFac) {
+        if (allies.containsKey(warHash)) {
+            return allies.get(warHash).getOrDefault(assaultedFac, 0);
+        } else return 0;
+
+    }
+    public void setDefeatedFaction(Faction defeatedFaction) {
+        this.defeatedFaction = defeatedFaction;
+    }
+    public void setWinnerFaction(Faction winnerFaction) {
+        this.winnerFaction = winnerFaction;
+    }
+    public Faction getDefeatedFaction() {
+        return defeatedFaction;
+    }
+    public Faction getWinnerFaction() {
+        return winnerFaction;
+    }
+    public void setTime(Integer time) {
+        this.time = time;
+    }
+    public Integer getTime() {
+        return time;
     }
 }

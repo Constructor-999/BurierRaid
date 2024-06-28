@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.massivecraft.factions.*;
+import com.massivecraft.factions.struct.Relation;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -226,6 +227,13 @@ public class startWar implements CommandExecutor {
             Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(JoinMessage);
             Factions.getInstance().getByTag(arg).getFPlayerLeader().getPlayer().spigot().sendMessage(DeclineMessage);
         }
+        Factions.getInstance().getAllFactions().forEach(helpingFac -> {
+            if (faction.getRelationWish(helpingFac).equals(Relation.ALLY)) {
+                helpingFac.getFPlayerLeader().getPlayer().sendMessage(ChatColor.RED+""+ChatColor.BOLD+"You are an ally of "+faction.getTag()+" would you be LOYAL and help him ?");
+                BaseComponent[] helpMessage = new ComponentBuilder("Yes I WILL !").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/joinAsAlly " + warHash +" "+ faction.getTag())).create();
+                helpingFac.getFPlayerLeader().getPlayer().spigot().sendMessage(helpMessage);
+            }
+        });
         for (Entity ArmorStandTotem : w.getEntities()) {
             if (ArmorStandTotem.getUniqueId().toString().equals(FactionRaids.get(faction.getId()).getTotemUUID())) {
                 FactionRaids.replace(faction.getId(), new FactionRaid(faction.getTag(),

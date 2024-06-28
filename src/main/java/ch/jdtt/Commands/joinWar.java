@@ -7,10 +7,11 @@ import ch.jdtt.BurierRaid.WarConstructor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.massivecraft.factions.FLocation;
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-import com.massivecraft.factions.Faction;
+import com.massivecraft.factions.*;
+import com.massivecraft.factions.struct.Relation;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -214,6 +215,13 @@ public class joinWar implements CommandExecutor {
             throw new RuntimeException(e);
         }
         sender.sendMessage(ChatColor.GREEN + "You successfully joined the war of "+ChatColor.DARK_RED+warStarter);
+        Factions.getInstance().getAllFactions().forEach(helpingFac -> {
+            if (faction.getRelationWish(helpingFac).equals(Relation.ALLY)) {
+                helpingFac.getFPlayerLeader().getPlayer().sendMessage(ChatColor.RED+""+ChatColor.BOLD+"You are an ally of "+faction.getTag()+" would you be LOYAL and help him ?");
+                BaseComponent[] helpMessage = new ComponentBuilder("Yes I WILL !").color(ChatColor.GOLD.asBungee()).bold(true).underlined(true).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/joinAsAlly " + args[0] +" "+ faction.getTag())).create();
+                helpingFac.getFPlayerLeader().getPlayer().spigot().sendMessage(helpMessage);
+            }
+        });
         return true;
     }
 }

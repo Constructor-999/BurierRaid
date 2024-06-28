@@ -18,3 +18,7 @@ commands:
     description: Internal server command
   declineWar:
     description: Internal server command
+  joinAsAlly:
+    description: Internal server command
+  claimReward:
+    description: Internal server command

@@ -2,10 +2,14 @@ package ch.jdtt.BurierRaid;
 
 import ch.jdtt.Commands.*;
 import ch.jdtt.autocompeter.startWarTabCompleter;
+import ch.jdtt.enchantments.Kevlar;
 import com.massivecraft.factions.Faction;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BurierRaid extends JavaPlugin {
+public class BurierRaid extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         // Don't log disabling, Spigot does that for you automatically!
@@ -48,5 +52,27 @@ public class BurierRaid extends JavaPlugin {
         getCommand("startWar").setTabCompleter(new startWarTabCompleter());
         getCommand("joinWar").setExecutor(new joinWar(this, warConstructor));
         getCommand("declineWar").setExecutor(new declineWar(this, warConstructor));
+        getServer().getPluginManager().registerEvents(warConstructor, this);
+        getCommand("joinAsAlly").setExecutor(new joinAsAlly(this, warConstructor));
+        registerKevlar();
+    }
+    public void registerKevlar() {
+        try {
+            Field f = Enchantment.class.getDeclaredField("acceptingNew");
+            f.setAccessible(true);
+            f.set(null, true);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Kevlar kevlar = new Kevlar();
+            Enchantment.registerEnchantment(kevlar);
+        }
+        catch (IllegalArgumentException e){
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }
