@@ -1,2 +1,2 @@
 # BurierRaid
-It was a minecraft spigot plugin that I made to manage wars between factions of the BurierSMP server
+It was a Minecraft Spigot plugin that I made to manage wars between the factions of the BurierSMP server.
